@@ -8,6 +8,20 @@
 /// </summary>
 void NetworkManager::Init()
 {
+	listenSocket = SocketUtil::CreateTCPSocket(SocketAddressFamily::INET);
+	
+	SocketAddressPtr address = SocketAddressFactory::CreateIPv4FromString("127.0.0.1");
+
+	int result = 0;
+	result = listenSocket->Bind(*address);
+	if (result != 0) return;
+
+	std::cout << "Socket Bound" << std::endl;
+
+	listenSocket->SetNonBlockingMode(true);
+
+	result = listenSocket->Listen();
+	if (result != 0) return;
 }
 
 /// <summary>
@@ -21,6 +35,10 @@ void NetworkManager::Init()
 /// </summary>
 void NetworkManager::CheckForNewConnections()
 {
+	SocketAddress newConnection;
+	TCPSocketPtr connectionSocket = listenSocket->Accept(newConnection);
+
+	openConnections[newConnection] = connectionSocket;
 }
 
 /// <summary>
@@ -30,10 +48,15 @@ void NetworkManager::CheckForNewConnections()
 /// <param name="message">Message to send</param>
 void NetworkManager::SendMessageToPeers(const std::string& message)
 {
+	for (auto i : openConnections)
+	{
+		i.second->Send(&message, message.length());
+	}
 }
 
 void NetworkManager::PostMessagesFromPeers()
 {
+
 }
 
 /// <summary>
@@ -42,4 +65,6 @@ void NetworkManager::PostMessagesFromPeers()
 /// <param name="targetAddress">The address to try to connect to.</param>
 void NetworkManager::AttemptToConnect(SocketAddressPtr targetAddress)
 {
+	listenSocket->Connect(*targetAddress);
+
 }
