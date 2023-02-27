@@ -56,7 +56,13 @@ void NetworkManager::SendMessageToPeers(const std::string& message)
 
 void NetworkManager::PostMessagesFromPeers()
 {
+	const size_t BUFLEN = 4096;
+	char buffer[BUFLEN];
 
+	for (auto i : openConnections)
+	{
+		i.second->Receive(buffer, BUFLEN);
+	}
 }
 
 /// <summary>
@@ -66,5 +72,4 @@ void NetworkManager::PostMessagesFromPeers()
 void NetworkManager::AttemptToConnect(SocketAddressPtr targetAddress)
 {
 	listenSocket->Connect(*targetAddress);
-
 }
