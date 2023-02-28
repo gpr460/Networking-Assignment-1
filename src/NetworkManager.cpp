@@ -37,6 +37,10 @@ void NetworkManager::CheckForNewConnections()
 {
 	SocketAddress newConnection;
 	TCPSocketPtr connectionSocket = listenSocket->Accept(newConnection);
+	if (connectionSocket == nullptr)
+	{
+		return;
+	}
 
 	openConnections[newConnection] = connectionSocket;
 }
@@ -62,6 +66,9 @@ void NetworkManager::PostMessagesFromPeers()
 	for (auto i : openConnections)
 	{
 		i.second->Receive(buffer, BUFLEN);
+
+		std::string message(buffer, BUFLEN);
+		messageLog.AddMessage(message);
 	}
 }
 
